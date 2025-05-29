@@ -1,45 +1,37 @@
-// console.log("chai and code");
+import dotenv from "dotenv";
+import connectDB from "./db/index.js";
 
-// require("dotenv").config();
-// const express = require("express");
-
-import express from "express";
-
-const app = express();
+dotenv.config({
+  path: "./.env",
+});
 const port = process.env.PORT || 4000;
 
-const userData = [
-  {
-    id: 1,
-    names: "Samir Singh",
-    age: 25,
-  },
-  {
-    id: 2,
-    names: "Deepak Singh",
-    age: 31,
-  },
-  {
-    id: 3,
-    names: "Abhijeeet Singh",
-    age: 21,
-  },
-];
+connectDB();
 
-app.get("/", (req, res) => {
-  res.send("Hello World");
-});
+/*
+//Seting up th database
 
-app.get("/api/login", (req, res) => {
-  res.send("<h1>LOGIN</h1>");
-});
-app.get("/api/user", (req, res) => {
-  res.json(userData);
-});
+// const app = express();
 
-app.listen(port, () => {
-  console.log(`App listening on port ${port}`);
-});
+(async () => {
+  try {
+    await mongoose.connect(`${process.env.MONGODB_URL}/${DB_NAME}`);
+
+    // if express is not able to connect with DB
+    app.on("error", () => {
+      console.log("ERROR", error);
+      throw error;
+    });
+    //Server Running on
+    app.listen(port, () => {
+      console.log(`App listening on port ${port}`);
+    });
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+})();
+*/
 
 // Models Data Modelling
 // import mongoose from "mongoose";
