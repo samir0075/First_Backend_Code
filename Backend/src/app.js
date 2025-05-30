@@ -1,0 +1,47 @@
+import express from "express";
+import cookieParser from "cookie-parser";
+import cors from "cors";
+
+const app = express();
+
+/*
+ ** CORS SETUP
+ ** use - for using middleware and to setup configuration
+ */
+
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN,
+  })
+);
+
+/*
+ ** To receive data in json format with limits
+ */
+app.use(
+  express.json({
+    limit: "16kb",
+  })
+);
+
+/*
+ ** To receive data in params
+ */
+app.use(
+  express.urlencoded({
+    extended: true,
+    limit: "16kb",
+  })
+);
+
+/*
+ ** To receive images and file to store in public
+ */
+app.use(express.static("public"));
+
+/*
+ ** To read and write cookies into browser
+ */
+app.use(cookieParser());
+
+export default app;
