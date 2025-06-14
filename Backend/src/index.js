@@ -20,49 +20,15 @@ connectDB()
     console.log("MONGO DB CONNECTION FAILED !!!", error);
   });
 
-/*
-//Seting up th database
+// HTTP STATUS CODE -
 
-// const app = express();
-
-(async () => {
-  try {
-    await mongoose.connect(`${process.env.MONGODB_URL}/${DB_NAME}`);
-
-    // if express is not able to connect with DB
-    app.on("error", () => {
-      console.log("ERROR", error);
-      throw error;
-    });
-    //Server Running on
-    app.listen(port, () => {
-      console.log(`App listening on port ${port}`);
-    });
-  } catch (error) {
-    console.log(error);
-    throw error;
-  }
-})();
-*/
-
-// Models Data Modelling
-// import mongoose from "mongoose";
-// const userSchema = new moongoose.Schema({
-// name: {
-//   type: String,
-//   required: true,
-//  unique: true,
-// lowercase:true
-// },password:String,
-
-// Who created for that we are taking the reference
-// createdBy: {
-// type: moongoose.Schema.Types.ObjectId,
-// ref:'user'
-// }
-// },{timestamps:true})
-
-//export const user=  mongoose.model("user",userSchema)
-//
-//
-//
+// 200 - OK
+// 201 - CREATED
+// 202 - ACCEPTED
+// 307 - REDIRECT
+// 400 - BAD_REQUEST
+// 401 - UNAUTHORIZED
+// 402 - PAYMENT_REQUIRED
+// 404 - NOT_FOUND
+// 500 - INTERNAL_SERVER_ERROR
+// 504 - PAYMENT_GATEWAY_TIMEOUT
