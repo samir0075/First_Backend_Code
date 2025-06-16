@@ -4,7 +4,7 @@ import bycrpt from "bcrypt";
 
 const userSchema = new Schema(
   {
-    username: {
+    userName: {
       type: String,
       required: true,
       unique: true,
@@ -32,11 +32,13 @@ const userSchema = new Schema(
     coverImage: {
       type: String, // Will use Cloudinry
     },
-    watchHistory: {
-      // ARRAY
-      type: Schema.Types.ObjectId,
-      ref: "Video",
-    },
+    watchHistory: [
+      {
+        // ARRAY
+        type: Schema.Types.ObjectId,
+        ref: "Video",
+      },
+    ],
 
     password: {
       type: String,
@@ -56,8 +58,8 @@ const userSchema = new Schema(
 // Used function keyword because we want the reference of password , if used arrow func. then not possible
 
 userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return {};
-  this.password = bycrpt.hash(this.password, 10);
+  if (!this.isModified("password")) return next();
+  this.password = await bycrpt.hash(this.password, 10);
   next();
 });
 
@@ -66,7 +68,7 @@ userSchema.pre("save", async function (next) {
 // Compare password from user and  encrypted password saved in DB.
 
 userSchema.methods.isPasswordCorrect = async function (password) {
-  await bycrpt.compare(password, this.password);
+  return await bycrpt.compare(password, this.password);
 };
 
 // To generate encrypted code .

@@ -1,6 +1,6 @@
 // We have a class in express for api error , here we r overwriting the class value
 
-class ApiError extends error {
+class ApiError extends Error {
   constructor(
     statusCode,
     message = "Something went wrong",
