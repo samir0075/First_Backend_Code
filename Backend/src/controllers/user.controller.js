@@ -186,8 +186,8 @@ const logoutUser = asyncHandler(async (req, res) => {
   await User.findByIdAndUpdate(
     req.user._id,
     {
-      $set: {
-        refreshToken: undefined,
+      $unset: {
+        refreshToken: 1, //flag as 1 which needs to change
       },
     }, //New value need to return
     { new: true }
@@ -434,7 +434,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
         //   $cond: {
         //     if: {
         //       $in: [
-        //         mongoose.Types.ObjectId(req.user?._id),
+        //         new mongoose.Types.ObjectId(req.user?._id),
         //         "$subscribers.subscriber",
         //       ],
         //     }, // $in field checks in subscriber fields which is created above  in subscriber fields in model
@@ -476,7 +476,7 @@ const getWatchHistory = asyncHandler(async (req, res) => {
   const user = await User.aggregate([
     {
       $match: {
-        watchHistory: mongoose.Types.ObjectId(req.user._id), // we cannot write directly _id because in db it saved as Object("id") , in aggregate pipelinw _id wont work so new to write  like this
+        watchHistory: new mongoose.Types.ObjectId(req.user._id), // we cannot write directly _id because in db it saved as Object("id") , in aggregate pipelinw _id wont work so new to write  like this
       },
       //From this we get in User models
     },
