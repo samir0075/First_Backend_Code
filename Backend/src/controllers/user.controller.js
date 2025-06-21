@@ -3,6 +3,7 @@ import ApiError from "../utils/apiError.js";
 import { User } from "../models/user.model.js";
 import uploadOnCloudinary from "../utils/cloudinary.js";
 import ApiResponse from "../utils/apiResponse.js";
+import mongoose from "mongoose";
 
 const generateAccessAndRefreshToken = async (userId) => {
   try {
@@ -377,6 +378,160 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, { user }, "Cover Image updated successfully"));
 });
+
+//Channel Profile Page
+
+const getUserChannelProfile = asyncHandler(async (req, res) => {
+  console.log(req.params);
+  const { userName } = req.params;
+
+  if (!userName?.trim()) {
+    throw new ApiError(400, "Username is missing");
+  }
+
+  // $match field -> It will find one key from the entire document
+  // $lookup - used for joining other models fields.
+
+  //Aggregate Pipeline always return array of objects
+
+  const channel = await User.aggregate([
+    {
+      $match: {
+        userName: userName?.toLowerCase(),
+      },
+    },
+
+    // created this pipeline to find subscriber
+    {
+      $lookup: {
+        from: "subscriptions", //From - Subscription Model - but in db it will store in lowercase with plural
+        localField: "_id",
+        foreignField: "channel", // need to select channel from document so that we can get the subscriber.
+        as: "subscriber",
+      },
+    },
+
+    // how many channel user subscribed
+    {
+      $lookup: {
+        from: "subscriptions", //From - Subscription Model - but in db it will store in lowercase with plural
+        localField: "_id",
+        foreignField: "subscriber", // need to select subscriber from document so that we can get the channel subscribed to.
+        as: "subscribeTo",
+      },
+    },
+    // $addFields - It will add additional fields
+    {
+      $addFields: {
+        subscriberCounts: {
+          $size: "$subscriber", //To calculate subscriber count by counting subscriber field if it is field need to put $ before it
+        },
+        channelsSubscribedToCount: {
+          $size: "$subscribeTo",
+        },
+        // isSubscribed: {
+        //   //if else case
+        //   $cond: {
+        //     if: {
+        //       $in: [
+        //         mongoose.Types.ObjectId(req.user?._id),
+        //         "$subscribers.subscriber",
+        //       ],
+        //     }, // $in field checks in subscriber fields which is created above  in subscriber fields in model
+        //     then: true,
+        //     else: false,
+        //   },
+        // },
+      },
+    },
+    // TO select which value we need to send in response
+    {
+      $project: {
+        fullName: 1,
+        userName: 1,
+        email: 1,
+        avatar: 1,
+        createdAt: 1,
+        subscriberCounts: 1,
+        channelsSubscribedToCount: 1,
+        // isSubscribed: 1,
+      },
+    },
+  ]);
+
+  if (!channel?.length) {
+    throw new ApiError(404, "Channel doesn't exists");
+  }
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, channel[0], "User channel fetched successfully")
+    );
+});
+
+//Watch History
+
+const getWatchHistory = asyncHandler(async (req, res) => {
+  const user = await User.aggregate([
+    {
+      $match: {
+        watchHistory: mongoose.Types.ObjectId(req.user._id), // we cannot write directly _id because in db it saved as Object("id") , in aggregate pipelinw _id wont work so new to write  like this
+      },
+      //From this we get in User models
+    },
+    {
+      $lookup: {
+        from: "videos",
+        localField: "watchHistory",
+        foreignField: _id,
+        as: "watchHistory",
+
+        //sub pipeline -> Now we get in Videos model
+        pipeline: [
+          {
+            $lookup: {
+              from: "users",
+              localField: "owner",
+              foreignField: _id,
+              as: "owner",
+              pipeline: [
+                {
+                  $project: {
+                    avatar: 1,
+                    userName: 1,
+                    fullName: 1,
+                  },
+                },
+
+                //Pipeline always return [{},{}] - but in mos of cases we  required [{}] so extra thing we can do for frotend
+                {
+                  $addFields: {
+                    //overwrite the owner fields
+                    owner: {
+                      $first: "$owner",
+                    },
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ]);
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        user[0].watchHistory,
+        "Watch History fetched successfully"
+      )
+    );
+});
+
 export {
   registerUser,
   loginUser,
@@ -387,4 +542,6 @@ export {
   updateAccountDetails,
   updateUserAvatar,
   updateUserCoverImage,
+  getUserChannelProfile,
+  getWatchHistory,
 };
