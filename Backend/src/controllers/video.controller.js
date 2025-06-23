@@ -121,4 +121,46 @@ const listOfUploadedVideo = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, listOfDocuments, "Videos Fetched successfully"));
 });
 
-export { uploadVideo, listOfUploadedVideo };
+const getAllVideos = asyncHandler(async (req, res) => {
+  const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
+
+  const skipContentPerPage = (page - 1) * limit;
+
+  const sortOrder = sortType === "asc" ? 1 : -1;
+
+  //Filter by id or anything
+
+  const filter = {};
+
+  if (userId) {
+    filter.owner = userId; // filter by owner
+  }
+
+  //Search
+
+  if (query) {
+    filter.title = { $regex: query, $options: "i" }; //$regex-  perform partial match , $options: "i": case-insensitive match
+  }
+
+  const videos = await Video.find(filter)
+    .sort({ [sortBy]: sortOrder })
+    .skip(parseInt(skipContentPerPage))
+    .limit(parseInt(limit));
+
+  const totalCount = await Video.countDocuments(filter);
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        videos,
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(totalCount / limit),
+        totalCount,
+      },
+      "Videos fetched successfully"
+    )
+  );
+});
+
+export { uploadVideo, listOfUploadedVideo, getAllVideos };
