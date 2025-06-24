@@ -551,6 +551,68 @@ const testMail = asyncHandler(async (req, res) => {
   }
 });
 
+//Email Verification and Sending mail
+const emailVerificationForPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    throw new ApiError("Email is mandatory");
+  }
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+  const verifyLink = `http://localhost:3000/setup_new_password?email=${email}`;
+
+  try {
+    await sendMail({
+      to: `New Backend ${req.body.email}`,
+      subject: "Reset your password",
+      html: `
+      
+      <h3>Dear ${user?.fullName},</h3>
+      <h3>Please Click the below link to reset your password!</h3>
+      <a href="${verifyLink}">Verify Link </a>
+      `,
+    });
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, {}, "Email sent successfully"));
+  } catch (error) {
+    throw new ApiError(500, "Failed to sent mail");
+  }
+});
+
+//Forget Password - setup
+
+const updatePassword = asyncHandler(async (req, res) => {
+  const { email, newPassword } = req.body;
+
+  if (!email || !newPassword) {
+    throw new ApiError("Email & Password are mandatory");
+  }
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  user.password = newPassword;
+
+  //need to save
+  await user.save({
+    validateBeforeSave: false,
+  });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Password changed successfully"));
+});
+
 export {
   registerUser,
   loginUser,
@@ -564,4 +626,6 @@ export {
   getUserChannelProfile,
   getWatchHistory,
   testMail,
+  emailVerificationForPassword,
+  updatePassword,
 };

@@ -12,6 +12,8 @@ import {
   getUserChannelProfile,
   getWatchHistory,
   testMail,
+  emailVerificationForPassword,
+  updatePassword,
 } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
@@ -69,5 +71,11 @@ userRouter.route("/watch_history").get(verifyJWT, getWatchHistory);
 
 //Sendig test mail
 userRouter.route("/test_mail/:email").get(verifyJWT, testMail);
+
+//Sending email for setting up the password
+userRouter.route("/email_verification").post(emailVerificationForPassword);
+
+//Update Password
+userRouter.route("/update_password").post(updatePassword);
 
 export default userRouter;
